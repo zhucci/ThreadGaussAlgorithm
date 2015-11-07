@@ -15,15 +15,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <new>
-
+#include <sys/time.h>
 typedef struct {
   pthread_t tid;
-  int first;
-  int last;
-  } ThreadRecord;
+  int th_num;
+  } ThreadArg;
 
 
-void * mysolver ();
-int threadGauth();
+void * threadFunc (void *);
+double *ParallelGauss(int MatrixSize,double *SystemLinearEqu, int ThreadAmount);
 
 #endif

@@ -6,7 +6,7 @@
 #include <vector>
 #include <cstring>
 #include <assert.h>
-
+#include <iomanip>
 double * gauss(int N, double *A);
 
 #endif

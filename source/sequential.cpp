@@ -12,7 +12,7 @@ double * gauss(int N, double *B)
    double* X = new double[N]; 
    for(int i=0;i<N;i++)
      A[i]= &(matrix[(N+1)*i]);
-
+   /*
 	    for(int i=0;i<N-1;i++)
 	      {
 		
@@ -36,22 +36,20 @@ double * gauss(int N, double *B)
 			  A[i][k] = tmp;
 			}
 	      }
-
-	     for(int i=0;i<N-1;i++)
+   */
+	     for(int i=0;i<N;i++)
 	      {
-
 		for (int k=i+1; k<=N; k++) 
 		{
 		  
-		    double c = A[i][k]/A[i][i];
+		    A[i][k]/=A[i][i];
 		    for (int j=i+1; j<N; j++) 
 		    {
-			A[j][k]-= c * A[j][i];
+			A[j][k]-= A[i][k]*A[j][i];
 		    }
 		}
 	      }
 
-	    A[N-1][N]/=A[N-1][N-1];
 	    X[N-1]=A[N-1][N];
     for (int i=N-2; i>=0; i--) 
       {
@@ -61,5 +59,6 @@ double * gauss(int N, double *B)
 	  }
 	X[i]=A[i][N];
       }   
+    operator delete(matrix);
     return X;
 }

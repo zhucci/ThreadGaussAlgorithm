@@ -1,12 +1,12 @@
 SourcePath = /home/zhucci/Documents/Code/Thread/source
 BinPath =  /home/zhucci/Documents/Code/Thread/bin
 
-thread: parallel sequential main
+thread: $(BinPath)/parallel.o $(BinPath)/sequential.o $(BinPath)/main.o
 	g++  $(BinPath)/main.o $(BinPath)/parallel.o $(BinPath)/sequential.o \
-		 -o $(BinPath)/thread
-main: $(SourcePath)/main.cpp
+		 -o $(BinPath)/thread -lpthread
+$(BinPath)/main.o: $(SourcePath)/main.cpp
 	g++ -c -g $(SourcePath)/main.cpp -o $(BinPath)/main.o
-sequential: $(SourcePath)/sequential.cpp
+$(BinPath)/sequential.o: $(SourcePath)/sequential.cpp
 	g++ -c -g $(SourcePath)/sequential.cpp -o $(BinPath)/sequential.o
-parallel: $(SourcePath)/parallel.cpp
+$(BinPath)/parallel.o: $(SourcePath)/parallel.cpp
 	g++ -c -g $(SourcePath)/parallel.cpp -o $(BinPath)/parallel.o -lpthread
