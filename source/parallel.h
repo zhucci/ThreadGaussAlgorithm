@@ -22,14 +22,8 @@ typedef struct {
   int last;
   } ThreadRecord;
 
-extern int N;	// Размер матрицы A и векторов B, C
-extern double *A, *B, *C;
 
-extern int done;
-extern ThreadRecord *threads; // Массив индексов границ лент матрицы
-extern pthread_barrier_t barr1, barr2;
-
-void * mysolver (void *arg_p);
-int threadGauth(int argc,char* argv[]);
+void * mysolver ();
+int threadGauth();
 
 #endif

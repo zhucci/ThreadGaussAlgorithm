@@ -3,22 +3,25 @@
 using namespace std;
 
 
-double *gauss(int N, double **A)
+double * gauss(int N, double *B)
  {
-        // Swap maximum row with current row (column by column)
-      
-            double tmp = A[maxRow][k];
-            A[maxRow][k] = A[i][k];
-            A[i][k] = tmp;
-        
-	    for(int i=0;i<N-2;i++)
+   size_t num = sizeof(double)*N*(N+1);
+   double *matrix =(double *) operator new(num);
+   memcpy(matrix,B,num);
+   double* A[N];
+   double* X = new double[N]; 
+   for(int i=0;i<N;i++)
+     A[i]= &(matrix[(N+1)*i]);
+
+	    for(int i=0;i<N-1;i++)
 	      {
 		
 		      double maxEl = abs(A[i][i]);
 		      int maxRow = i;
-		      for (int k=i+1; k<N; k++) {
+		      for (int k=i+1; k<N; k++) 
+		      {
 			if (abs(A[k][i]) > maxEl) 
-			  {
+			{
 			  maxEl = abs(A[k][i]);
 			  maxRow = k;
 			}
@@ -39,6 +42,7 @@ double *gauss(int N, double **A)
 
 		for (int k=i+1; k<=N; k++) 
 		{
+		  
 		    double c = A[i][k]/A[i][i];
 		    for (int j=i+1; j<N; j++) 
 		    {
@@ -48,12 +52,14 @@ double *gauss(int N, double **A)
 	      }
 
 	    A[N-1][N]/=A[N-1][N-1];
-
+	    X[N-1]=A[N-1][N];
     for (int i=N-2; i>=0; i--) 
       {
-        for (int k=i+1;k<N; k--) 
+        for (int k=i+1;k<N; k++) 
 	  {
             A[i][N] -= A[i][k]*A[k][N];
 	  }
+	X[i]=A[i][N];
       }   
+    return X;
 }

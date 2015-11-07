@@ -1,89 +1,72 @@
 #include "parallel.h"
+double *A,*B,*C;
+int  N;
+ int done;
+ ThreadRecord *threads; // Массив индексов границ лент матрицы
+ pthread_barrier_t barr2;
 
-void *
-mysolver (void *arg_p) 
+void threadFunc(double **A,double *B, int th_amount, int th_num) 
 {
-  ThreadRecord *thr;
-  char numbs[] = {'1','2','3','4','5','6','7','8','9','0'};
-  int i, j;
-
-  thr = (ThreadRecord *)arg_p;
-
-  while ( !done ) {
-    pthread_barrier_wait(&barr1);
-    write (1, numbs, thr->tid);
-    write (1, "\n", 1);
-    for (i=thr->first; i<=thr->last; i++) {
-      C[i] = 0;
-      for (j=0; j<=N; j++)
-        C[i] += A[N*i+j]*B[j];
-      };
-    pthread_barrier_wait(&barr2);
-  }
+  printf("%d - thread start\n",th_num);
+  printf("%d - thread end\n".th_num);
 }
-int threadGauth (int argc, char* argv[]) {
-  int nt;	// Кол-во расчетных потоков
-  int nc;	// Кол-во циклов
-  int i, j, k;
+double *ParallelGauss(int N,double *SOLE, int th_amount) 
+{
+    size_t num = sizeof(double)*N*(N+1);
+   double *matrix =(double *) operator new(num);
+   memcpy(matrix,SOLE,num);
+   double* A[N];
+   double* X = new double[N]; 
 
-  pthread_attr_t pattr;
+   for(int i=0;i<N;i++)
+     A[i]= &(matrix[(N+1)*i]);
 
-  if (argc != 4) {
-    fprintf(stderr, "Исп: %s размерность #потоков #циклов\n", argv[0]);
-    exit (1);
-    };
+	    for(int i=0;i<N-1;i++)
+	      {
+		      double maxEl = abs(A[i][i]);
+		      int maxRow = i;
+		      for (int k=i+1; k<N; k++) 
+		      {
+			if (abs(A[k][i]) > maxEl) 
+			{
+			  maxEl = abs(A[k][i]);
+			  maxRow = k;
+			}
+		      }
 
-  N = atoi(argv[1]);
-  nt = atoi(argv[2]);
-  nc = atoi(argv[3]);
+		      // Swap maximum row with current row (column by column)
+		      register double tmp;
+		      for (int k=i; k<N+1;k++)
+			{
+			  tmp = A[maxRow][k];
+			  A[maxRow][k] = A[i][k];
+			  A[i][k] = tmp;
+			}
+	      }
 
-  if ( N%nt ) {
-    fprintf(stderr, "Размерность д.б. кратна кол-ву потоков\n");
-    exit (2);
-    };
+	     for(int i=0;i<N-1;i++)
+	      {
 
-  // Выделение памяти
-  A = static_cast<double *>(::operator new(sizeof(double)*N*N));
-  B = (double *) ::operator new(sizeof(double)*N );
-  C = (double *) ::operator new( sizeof(double)*N );
+		for (int k=i+1; k<=N; k++) 
+		{
+		  
+		    double c = A[i][k]/A[i][i];
+		    for (int j=i+1; j<N; j++) 
+		    {
+			A[j][k]-= c * A[j][i];
+		    }
+		}
+	      }
 
-  // Инициализация A и B случ. значениями
-  srand(time(NULL));
-  for (i=0; i<N; i++) {
-    B[i] = (double) rand();
-    for (j=0; j<N; j++)
-      A[i*N+j] = (double) rand();
-    };
-
-  pthread_attr_init (&pattr);
-  pthread_attr_setscope (&pattr, PTHREAD_SCOPE_SYSTEM);
-  pthread_attr_setdetachstate (&pattr,PTHREAD_CREATE_JOINABLE);
-
-  threads = (ThreadRecord *) calloc (nt, sizeof(ThreadRecord));
-
-  pthread_barrier_init(&barr1, NULL, nt+1);
-  pthread_barrier_init(&barr2, NULL, nt+1);
-
-  j = N/nt;
-  for (i=0; i<nt; i++) {
-    threads[i].first = j*i; // Индекс нач. строки А для потока
-    threads[i].last = j*(i+1)-1; // Индекс конечн. строки А для потока
-    if ( pthread_create (&(threads[i].tid), &pattr, mysolver, (void *) &(threads[i])) )
-      perror("pthread_create");
-    };
-  
-  pthread_barrier_wait(&barr1); // Старт расчетов
-
-  for (k=1; k<nc; k++) {
-    pthread_barrier_wait(&barr2);
-write(1, "---------\n", 10);
-
-    for (j=0; j<N; j++)
-        B[j] = (double) rand();
-
-    pthread_barrier_wait(&barr1);
-    };
-  done = 1;
-
-  exit (0);
-  }
+	    A[N-1][N]/=A[N-1][N-1];
+	    X[N-1]=A[N-1][N];
+    for (int i=N-2; i>=0; i--) 
+      {
+        for (int k=i+1;k<N; k++) 
+	  {
+            A[i][N] -= A[i][k]*A[k][N];
+	  }
+	X[i]=A[i][N];
+      }   
+    return X;
+}

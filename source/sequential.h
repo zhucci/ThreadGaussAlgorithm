@@ -4,8 +4,9 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <cstring>
+#include <assert.h>
 
-
-double *gauss(int N, double **A);
+double * gauss(int N, double *A);
 
 #endif
