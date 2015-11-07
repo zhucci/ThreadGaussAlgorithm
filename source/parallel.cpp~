@@ -1,0 +1,68 @@
+#include "parallel.h"
+
+int threadGauth (int argc, char* argv[]) {
+  int nt;	// Кол-во расчетных потоков
+  int nc;	// Кол-во циклов
+  int i, j, k;
+
+  pthread_attr_t pattr;
+
+  if (argc != 4) {
+    fprintf(stderr, "Исп: %s размерность #потоков #циклов\n", argv[0]);
+    exit (1);
+    };
+
+  N = atoi(argv[1]);
+  nt = atoi(argv[2]);
+  nc = atoi(argv[3]);
+
+  if ( N%nt ) {
+    fprintf(stderr, "Размерность д.б. кратна кол-ву потоков\n");
+    exit (2);
+    };
+
+  // Выделение памяти
+  A = static_cast<double *>(::operator new(sizeof(double)*N*N));
+  B = (double *) ::operator new(sizeof(double)*N );
+  C = (double *) ::operator new( sizeof(double)*N );
+
+  // Инициализация A и B случ. значениями
+  srand(time(NULL));
+  for (i=0; i<N; i++) {
+    B[i] = (double) rand();
+    for (j=0; j<N; j++)
+      A[i*N+j] = (double) rand();
+    };
+
+  pthread_attr_init (&pattr);
+  pthread_attr_setscope (&pattr, PTHREAD_SCOPE_SYSTEM);
+  pthread_attr_setdetachstate (&pattr,PTHREAD_CREATE_JOINABLE);
+
+  threads = (ThreadRecord *) calloc (nt, sizeof(ThreadRecord));
+
+  pthread_barrier_init(&barr1, NULL, nt+1);
+  pthread_barrier_init(&barr2, NULL, nt+1);
+
+  j = N/nt;
+  for (i=0; i<nt; i++) {
+    threads[i].first = j*i; // Индекс нач. строки А для потока
+    threads[i].last = j*(i+1)-1; // Индекс конечн. строки А для потока
+    if ( pthread_create (&(threads[i].tid), &pattr, mysolver, (void *) &(threads[i])) )
+      perror("pthread_create");
+    };
+  
+  pthread_barrier_wait(&barr1); // Старт расчетов
+
+  for (k=1; k<nc; k++) {
+    pthread_barrier_wait(&barr2);
+write(1, "---------\n", 10);
+
+    for (j=0; j<N; j++)
+        B[j] = (double) rand();
+
+    pthread_barrier_wait(&barr1);
+    };
+  done = 1;
+
+  exit (0);
+  }
